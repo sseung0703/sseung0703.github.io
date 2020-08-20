@@ -1,0 +1,124 @@
+---
+layout: post
+title: "All about JWT"
+date: 2020-03-01 01:43:00 +0900
+image_url: https://img.velog.io/post-images/jiwon/2eba05b0-27ad-11ea-a823-01363ba4dd46/jwt.png?w=1024
+mathjax: true
+comments: true
+---
+# Security
+보안은 사람들이 모두 말하면서도 어디에서 자세히 가르쳐주지 않는 분야입니다. 필자도 어떤 책, 어떤 것으로 공부를 했다 보다는, 그냥 필요할 때마다 따로 공부해서 쌓이고 쌓여 산발적으로 알고 있습니다. 그 여러 이상한 것들 중 오늘은 가장 간단한 Token 기반의 보안인 JWT(JSON Web Token)에 대해서 알아보고자 합니다.
+
+# Authorization vs Authentication
+![authentication vs authorization][avsa]
+
+보통 `Authorization`와 `Authentication`은 모두에게 혼동됩니다. 한국말로는 각각 `인가`와 `인증`으로 번역되며 각각은 비슷하면서도 매우 다른 의미를 가지고 있습니다. 저도 항상 헷갈려하는 것 중 하나에요.
+
+## Authentication
+[Apache HTTPD][apache]에서는 인증을 다음과 같이 정의합니다.
+
+
+```
+인증(authentication)은 자신이 누구라고 주장하는 사람을 확인하는 절차이다.
+```
+네, 무슨 소린지 모르겠습니다. 간단하게 말하면, 은행에서 본인임을 증명하기 위해 신분증을 제출하는 절차가 있습니다. 이 과정을 인증이라고 이해하시면 좋습니다.
+
+보통은 아이디와 패스워드로 "나는 OO이다!"라고 주장하는 것을 쉽게 확인할 수 있죠. 이 과정이 바로 인증(Authentication)입니다.
+
+## Authorization
+또 한번 [Apache HTTPD][apache]의 정의를 살펴 봅시다.
+```
+권한부여(authorization)는 가고 싶은 곳으로 가도록 혹은 원하는 정보를 얻도록 허용하는 과정이다.
+```
+이번엔 대충 뭔 소린진 알겠는데, 와닿지는 않는 군요. 이번에서 정리해서 말해보자면, 은행에서 신분증을 제출까지는 했는데 은행원이 그 신분증으로 본인 계좌인지 아닌지 확인하지 않으면 소용이 없겠죠. 이렇듯, 본인이 확인이 된 상태에서 그 사람이 정말로 접근하려는 곳에 접근되어도 되는지 확인하는 절차가 인가(Authorization)입니다.
+
+# JSON Web Token
+JSON Web Token (JWT)는 간단하고, URL에 포함되어 전송될 수 있는 웹 보안 규약입니다. 일단 어떻게 생긴 애인지 확인을 해보면 대략 다음과 같이 생겼습니다.
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+인코딩에 익숙한 분들은, 떠오르는건 BASE64(BASE64URL)로 인코딩 되어있다는 점이겠죠. 그래서 이걸 BASE64 Decoder로 UTF-8로 해석을 해보면 다음과 같은 결과가 나오게됩니다.
+```
+{"alg":"HS256","typ":"JWT"}{"sub":"1234567890","name":"John Doe","iat":1516239022}pDx
+Lx"Ui,\
+```
+오호! 무언가 의미가 있는 애들이 나오게 되었네요 두개의 JSON Object와 뒤의 알 수 없는 무언가로 이루어져있는 것을 확인하실 수 있습니다.
+
+여기서 이제 첫 번째, 두 번째, 그리고 마지막의 이상한 부분이 각각 무엇을 의미하는 지 알아보도록 합시다.
+
+## Header
+```json
+{
+    "alg": "HS256",
+    "typ": "JWT"
+}
+```
+제일 첫 번째 부분은 바로 Header라는 부분입니다. 이 부분은 JWT가 어떤 알고리즘을 사용하고 있고 어떤 토큰인지 명시하는 것이 들어갑니다. 여기서 `alg`는 나아중에 나올 것입니다. `typ`은 그야말로 이 토큰이 JWT를 따르고 있다는 것을 알려주고 있는 것이고요.
+
+## Payload
+두 번째에 있던 내용은 Payload라고 합니다. 이 부분은 전하고 싶은 여러 가지 내용을 모두 담을 수 있습니다. `iss`, `exp`, `sub`, `aud`등의 여러 정보를 담을 수 있으며 [RFC7519][jwtpayload]에서 상세하게 정의하고 있습니다. 이 중 중요한 몇 가지의 클레임을 살펴봅시다.
+- iss: 토큰 발급자
+- exp: 만료시간
+- iat: 발급시간
+
+이 외에도 [IANA JSON Web Token Registry][IANA]에서 지정한 Public claims가 존재하고 우리가 지정하는 Private claims를 지정할 수 있습니다. 주의 해야할 점은 __절대로 이 Payload에 노출되서는 안되는 정보를 넣으면 안됩니다.__ 이 부분은 손쉽게 BASE64URL을 통해 디코딩 될 수 있기 때문이죠.
+
+## Signature
+마지막으로 대망의 Signature입니다. 이 부분은 위의 Header, Payload의 두 내용과 하나의 `열쇠`로 이루어져 있습니다. 의사 코드(pseudo code)로 나타내면 다음과 같이 나타낼 수 있습니다.
+```
+HASH_ALGORITHM(
+    base64UrlEncode(header) + "." + 
+    base64UrlEncode(payload),
+    secret_key
+)
+```
+첫 번째로 header와 payload를 각각 BASE64URL로 인코딩하고 점(.)으로 이어 붙인 뒤, 하나의 열쇠값을 넣어 전체를 Hashing합니다. 이 Hash는 위의 Header에서 넣어놓은 `alg`에 맞추어 해주면 됩니다. 이렇게 되면 Header와 Payload가 위조되어도 Signature의 값이 달라지기 때문에 JWT는 토큰만 가지고 위조의 여부를 알 수 있게 됩니다.
+
+# Putting all together
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+그래서 다시 이 토큰을 보면 점(.)을 기준으로 Header, Payload, Signature가 나눠져 있는 것을 알 수 있습니다. 그러면 이걸 만들어서 어떻게 사용을 하게 될 까요? 그리고 JWT를 사용하면 뭐가 좋을까요?
+
+## How do JWT work?
+보통 토큰 기반 인증은 HTTP Header에 넣어서 보내는 것을 권장합니다. 때로는 URL에 실어서 보내기도 하지만, 이는 권장되는 방법은 아닌 듯합니다. (이 것에도 논란이 좀 있어요) 기본적으로는 HTTP Header의 Authorization에 Bearer schema(이거도 말하자면 엄청 길어요. 궁금하면 [여기][bearer]를 봅시다.)를 사용해서 전송합니다. 그래서 HTTP 1.1의 코드로 보면 다음과 같이 요청을 보내게 될 것 입니다.
+```http
+GET /some/api/path HTTP/1.1
+Host: localhost:4000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+HTTP의 Authorization 헤더의 자세한 설명은 이 [링크][authorization_header]를 참고해주세요.
+
+그러면 API 서버에서는 이 토큰을 받아서 JWT Header, Payload, Signature를 각각 확인하여 이상한 점이 있는지 없는지를 잡아내고 Authorization 절차로 넘어가면 됩니다. (여태까지는 Authentication이었다는 뜻!) 
+
+## Properties
+JWT는 대체 왜 다른 애들보다 더 각광받고 있을까요? 그리고 어떤 성질들을 가지고 있을까요?
+
+1. 아주 많은 프로그래밍 언어에서 지원됩니다.
+
+    사실 JWT는 수많은 웹 기술을 필요로 하지도 않고 조금만 노력해주면 아주 쉽게 구현할 수 있기 때문에 많은 언어에서 라이브러리가 존재할 수 있습니다. 무려 `.NET`, `Python`, `Node.js`, `JAVA`, `Javascript`, `Perl`, `Ruby`, `Elixir`, `Erlang`, `Go`, `Groovy`, `Haskell`, `Haxe`, `Rust`, `Lua`, `Scala`, `D`, `Clojure`, `Obj-C`, `Swift`, `C`, `C++`, `kdb+/Q`, `Delphi`, `PHP`, `Crystal`, `1C`, `PostgreSQL`, `Ada`, `Kotlin` 등에서 지원을 합니다! 굉장히 많죠.
+
+2. Self-contained 합니다.
+
+    JWT는 Signature에서 Header와 Payload를 함께 해싱하는 특징을 가지고 있었죠. 이에 따라서 신기하게도 JWT 혼자서 자신이 정당하게 만들어진 토큰인지 확인할 수 있습니다. 
+
+3. 쉽게 전달 할 수 있습니다.
+
+    JWT는 HTTP Request를 보낼 때, HTTP Header에 포함만 시켜서 보내면 되므로 따로 해야할 작업이 적습니다.
+
+4. Stateless 합니다.
+
+    Stateless한 성질은 매우 중요하게 여겨집니다. JWT는 어느 상태에 있던지에 상관없이 자신이 유효한지 무효한지를 검증할 수 있습니다.
+
+# Conclusion
+API 서버를 만들 때, 저는 항상 JWT를 사용해서 Authentication을 하는 것을 좋아합니다. 모두가 세션어쩌구 쿠키어쩌구 하면서 고통받을 시간에 JWT로 바꾸면 매우 편해지고 빠르게 개발을 할 수 있기 때문입니다. 매 Reqeust에서 Authentication을 하는 것이 느릴 수 있다고 생각할 수 있지만, 전혀 그렇지 않습니다. Authorization을 하는 경우는 관련 유저의 정보를 가져오고 Access Control을 하는 경우는 Redis나 Memcache등을 이용해 짧은 기간동안 유저 정보를 캐싱하고 가져오는 것도 시간을 단축하는 하나의 방법이 됩니다. 
+
+글이 마음에 드셨다면 밑의 구독 부탁드립니다!
+
+
+[apache]: https://httpd.apache.org/docs/2.4/ko/howto/auth.html
+[avsa]: https://miro.medium.com/max/854/1*e6-Qy8EQJu1TW4y6KW913Q.jpeg
+[jwtpayload]: https://tools.ietf.org/html/rfc7519#section-4.1
+[IANA]: https://www.iana.org/assignments/jwt/jwt.xhtml
+[bearer]: https://tools.ietf.org/html/rfc6750
+[authorization_header]: https://developer.mozilla.org/ko/docs/Web/HTTP/Authentication
