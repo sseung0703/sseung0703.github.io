@@ -5,6 +5,7 @@ date: 2020-07-01
 mathjax: true
 comments: true
 ---
+
 # Gate Decorator: Global Filter Pruning Method for Accelerating Deep Convolutional Neural Networks
 ## Zhonghui You, Kun Yan, Jinmian Ye, Meng Ma, Ping Wang, NeurIPS 2019
 [paper link](https://arxiv.org/abs/1909.08174)
