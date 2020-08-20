@@ -1,8 +1,7 @@
 ---
 layout: post
-title: "2020_3rd_quater"
+title: "2020 3rd quater"
 date: 2020-02-23 19:33:00 +0900
-image_url: https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Waterfall_model.svg/700px-Waterfall_model.svg.png
 mathjax: true
 comments: true
 ---
