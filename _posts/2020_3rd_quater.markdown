@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "2020_3rd_quater"
+title: "2020_3rd"
 date: 2020-07-01
 mathjax: true
 comments: true
