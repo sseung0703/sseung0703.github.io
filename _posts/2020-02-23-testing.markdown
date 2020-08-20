@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "2020 3rd quater"
-date: 2020-02-23
+date: 2020-07-02 ~ 2020-09-24
 mathjax: true
 comments: true
 ---
