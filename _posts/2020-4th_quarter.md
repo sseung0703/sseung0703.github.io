@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "2020_3rd_quarter"
-date: 2020-07-02
+title: "2020_4th_quarter"
+date: 2020-10-08
 image_url: https://user-images.githubusercontent.com/32321592/98316905-a7b9a000-201e-11eb-8135-053b5662ff85.png
 mathjax: true
 comments: true
